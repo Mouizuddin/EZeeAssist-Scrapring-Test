@@ -11,7 +11,9 @@ headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
 }
 link = requests.get('https://franchisesuppliernetwork.com/',headers=headers)
+all_images_url = []
 try:
+   
     if link.status_code == 200:
         st.subheader(f'Scraping :blue[{link.url}]')
         code = BeautifulSoup(link.text,'html.parser')
@@ -30,6 +32,7 @@ try:
         st.write('')
         logo_div = code.find('div',{'class':'logos-inner'})
         companies_img_links = [x['src'] for x in logo_div.find_all('img')]
+        all_images_url.append(companies_img_links)
         company_names = [x['src'].split('/')[-1].replace('.jpg','') for x in logo_div.find_all('img')]
         section_2 = logo_div.find_previous().text.strip() # We’ve Helped
         companies_dict = dict(zip(company_names,companies_img_links))
@@ -78,6 +81,7 @@ try:
             name = [x.text.strip() for x in about_main_div.find_all('h3')]
             designation = [x.text.strip() for x in about_main_div.find_all('h4')]
             profile_img_url = [x['src'] for x in about_main_div.find_all('img')]
+            all_images_url.append(profile_img_url)
 
             about_dict = {}
             for data in range(len(about_main_div.find_all('div',{'class':'col-md-9'}))):
@@ -187,3 +191,11 @@ if get_csv:
         df.to_csv(f'suppliers_info.csv', index=False)
     except:
             st.write('Error in generating CSV')
+
+
+st.write('')
+st.header('Web analysis', divider='rainbow')
+st.write(f'Total image links scraped >> {len([x for y in all_images_url for x in y])}')
+st.write(f'Total web page links scraped >> {len(clean_inner_page_links)+2}')
+
+
